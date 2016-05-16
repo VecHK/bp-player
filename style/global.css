@@ -17,8 +17,10 @@ main {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-around;
+	align-items: center;
 }
 #cover{
+	position: relative;
 	width: 640px;
 	height: 50%;
 	/* border-radius: 384px; */
@@ -27,26 +29,35 @@ main {
 	justify-content: center;
 	align-content: center;
 }
+#cover #ring{
+	position: absolute;;
+	height: 100%;
+
+}
 #cover img{
 	height: 100%;
 	/* border-radius: 384px; */
 	box-shadow: 0px 0px 32px #bbb;
 }
 
-#info{
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-around;
+#info {
+	max-width: 100%;
+	/* display: flex; */
+	/* flex-direction: column; */
+	/* align-items: center; */
+	/* justify-content: space-around; */
+	/* margin: auto; */
+	/* width: inherit; */
+	/* overflow-x: scroll; */
+	min-width: calc(100% / 2);
 }
-h1#title {
+#title {
 	/* margin-bottom: 70px; */
 	/* font-stretch: condensed; */
 	/* font-weight: 100; */
 	font-family: 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
 	/* font-stretch: extra-condensed; */
-	margin-bottom: 1.5em;
+	text-align: center;
 }
 
 #artist:before {
@@ -63,9 +74,10 @@ h1#title {
 	font-stretch: condensed;
 	font-weight: 100;
 	font-family: Tahoma, 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
-	width: calc(100% / 2);
+	/* width: calc(100% / 2); */
 	color: darkred;
-	margin: 0;
+	/* margin: 0; */
+	text-align: left;
 }
 
 #album:before {
@@ -85,10 +97,32 @@ h1#title {
 	color: darkred;
 	/* width: 256px; */
 	text-align: right;
-	width: calc(100% / 2);
-	margin: 0;
+	/* width: calc(100% / 2); */
+	/* margin: 0; */
 }
 
+#progress{
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	width: 100%;
+	height: 4px;
+
+}
+#progress .current{
+	background: indianred;
+	width: 100%;
+	height: 100%;
+	transition: width 0.618s;
+}
+
+#bugger{
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	height: 100px;
+	max-width: 200px;
+}
 
 ::-webkit-scrollbar {
 	width: 6px;
