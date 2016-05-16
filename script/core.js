@@ -17,14 +17,15 @@
 		}
 
 		/* 重新加载 this.list[this.cursor] 的歌曲 */
-		/* 触发reload核心事件） */
 		reload(){
 			this.load();
 			this.play();
 		}
 
 		/* 下一首 */
-		next(){}
+		next(){
+			++this.cursor;
+		}
 
 		/* 上一首 */
 		previous(){}
@@ -54,7 +55,7 @@
 				break;
 
 				case 'normal':{
-					++this.cursor;
+					this.next();
 				}
 				break;
 
@@ -103,7 +104,10 @@
 				return this._cursor;
 			},
 			set(set){
-				if ( set >= this.list.length ){
+				if ( set < 0 ){
+					console.warn(`cursor(${set})设置为比0小的数是不行的`);
+				}
+				else if ( set >= this.list.length ){
 					console.warn(`设置了一个比 list长度 还长的cursor\ncursor已归零`);
 					this.cursor = 0;
 				}else{
@@ -136,17 +140,25 @@
 			this.audio.pause();
 		}
 		load(item){
-			if ( item === undefined ){
-				item = this.getCurrent();
+			if ( arguments.length === 0 ){
+				return this.load( this.getCurrent() );
 			}
-			this.audio.src = item.url;
-			this.audio.load();
+			if ( item !== undefined ){
+				this.audio.src = item.url;
+				this.audio.load();
+
+				/* 传递核心事件（对象复制） */
+				this.fetchEvent.apply(this.coreEvent.reload, [ JSON.parse(JSON.stringify(item)) ]);
+			}
 		}
 	}
+	BPCore.prototype.version = "0.0.1";
 	BPCore.prototype.__proto__ = BPList.prototype;
 
-
+	/* 构造函数 */
 	let BP = function (audioEle){
+		console.log('bpConstructor');
+		this.audio = audioEle || (new Audio);
 
 		this.rmEvent = function (eventName, func){
 			this.audio.removeEvent(eventName, func);
@@ -154,13 +166,13 @@
 		this.addEvent = function (eventName, callBack, t){
 			this.audio.addEventListener(eventName, callBack, t);
 		};
-		function maxCurring(){
+		let maxCurring = function (){
 			if ( arguments.length <= 1 ){
 				return arguments[0];
 			}
 			Array.prototype.splice.apply(arguments, [Number(arguments[0] > arguments[1]), 1]);
 			return maxCurring.apply(null, arguments);
-		}
+		};
 		let rmItem = function (arr, item){
 			var status = Array.prototype.indexOf.call(arr, item);
 			return (status >= 0) && Array.prototype.splice.apply(arr, [status, 1]);
@@ -170,22 +182,23 @@
 			return rmItem(this.eventPool[poolName], item);
 		};
 
+		this.fetchEvent = function (){
+			let args = arguments;
+			this.forEach(func => {
+				func.apply(this, args);
+			});
+		};
+
 		/* 初始化自定义事件轮询 */
 		this.initEventList = function (){
-			let fetch = function (){
-				let args = arguments;
-				this.forEach(function (func){
-					func.apply(null, args);
-				});
-			};
 			this.eventList.forEach(function (eventName, currsor){
 				/* 事件池初始化 */
 				if ( this.eventPool[eventName] === undefined ){
 					this.eventPool[eventName] = [];
 				}
-				this.addEvent(eventName, fetch.bind(this.eventPool[eventName]));
+				this.addEvent(eventName, this.fetchEvent.bind(this.eventPool[eventName]));
 			}.bind(this));
-		};
+		}.apply(this);
 
 		/* 设定核心事件 */
 		this.initCoreEvent = function (){
@@ -194,21 +207,19 @@
 				this.playEnd.apply(this, arguments);
 			};
 			this.addEvent('ended', this.coreEvent.ended.bind(this));
-		};
+		}.apply(this);
 		this.getReload = function (){
 			return this.__proto__.__proto__.__proto__.reload;
 		};
 
-		console.log('bpConstructor');
-		this.audio = audioEle || (new Audio);
-
-		this.initEventList();
-		this.initCoreEvent();
-
 		this.load();
 
 	};
-	BP.prototype.coreEvent = {};
+	BP.prototype.coreEvent = {
+
+		/* 定义 reload 核心事件 */
+		reload: [],
+	};
 	BP.prototype.eventFetch = {};
 	BP.prototype.eventPool = {};
 	BP.prototype.eventList = ["loadstart", "durationchange", "timeupdate", "loadedmetadata", "loadeddata", "progress", "canplay", "canplaythrough", "play", "pause", "ended"]
