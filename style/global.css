@@ -1,3 +1,95 @@
+html, body{
+	height: 100%;
+	width: 100%;
+
+	margin: 0;
+	padding: 0;
+
+	position: absolute;
+}
+body{
+	display: flex;
+	justify-content: center;
+}
+main {
+	height: 100%;
+	width: 640px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+}
+#cover{
+	width: 640px;
+	height: 50%;
+	/* border-radius: 384px; */
+	/* border: aqua solid; */
+	display: flex;
+	justify-content: center;
+	align-content: center;
+}
+#cover img{
+	height: 100%;
+	/* border-radius: 384px; */
+	box-shadow: 0px 0px 32px #bbb;
+}
+
+#info{
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+}
+h1#title {
+	/* margin-bottom: 70px; */
+	/* font-stretch: condensed; */
+	/* font-weight: 100; */
+	font-family: 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
+	/* font-stretch: extra-condensed; */
+	margin-bottom: 1.5em;
+}
+
+#artist:before {
+	content: "artist";
+	color: #795548;
+	font-family: Arial;
+	font-stretch: condensed;
+	font-weight: 100;
+	font-variant: small-caps;
+	font-style: italic;
+	text-shadow: 0px 0px 1px #ccc;
+}
+#artist {
+	font-stretch: condensed;
+	font-weight: 100;
+	font-family: Tahoma, 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
+	width: calc(100% / 2);
+	color: darkred;
+	margin: 0;
+}
+
+#album:before {
+	content: "album";
+	color: #795548;
+	font-family: Arial;
+	font-stretch: condensed;
+	font-weight: 100;
+	font-variant: small-caps;
+	font-style: italic;
+	text-shadow: 0px 0px 1px #ccc;
+}
+#album {
+	font-stretch: condensed;
+	font-weight: 100;
+	font-family: 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
+	color: darkred;
+	/* width: 256px; */
+	text-align: right;
+	width: calc(100% / 2);
+	margin: 0;
+}
+
+
 ::-webkit-scrollbar {
 	width: 6px;
 	height: 8px;
