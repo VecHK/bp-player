@@ -76,11 +76,11 @@ bp.playMode = 'random';
 /* 或者用 bp.next(); 也可以 */
 
 ```
-这两种方式换曲**并不受播放模式影响**，bp-core将在未来版本支持 **受播放模式影响** 的换曲方式
+这两种方式换曲**并不受播放模式影响**
 
 `bp.cursor` 是歌曲列表的指针，指向 `bp.list` 中当前播放的曲目。如果`bp.cursor`被修改了，bp-core的就会以被修改后的`bp.cursor`重新加载曲目。如果把`bp.cursor`设为比`bp.list`长度还大的数，`bp.cursor`将会被设置为`0`；如果设置为小于0的数字，则忽略
 
-** 受播放模式影响 ** 的换取方式见 APIs栏的 `BP.prototype.playEnd`
+**受播放模式影响** 的换曲方式见 APIs栏的 `BP.prototype.playEnd`
 
 ### 事件
 
