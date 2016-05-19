@@ -28,7 +28,9 @@
 		}
 
 		/* 上一首 */
-		previous(){}
+		previous(){
+			--this.cursor;
+		}
 
 		/* 获得随机数 */
 		getRandom(From, to){
@@ -60,6 +62,7 @@
 				break;
 
 				case 'loop':{
+					/*this.audio.currentTime = 0;*/
 					this.play();
 				}
 				break;
@@ -115,6 +118,8 @@
 					console.info(`cursor已切换到${set}`);
 
 					this.reload();
+
+					this.fetchEvent(this.coreEvent.cursorchange, [set, this.current]);
 				}
 			}
 		},
@@ -211,6 +216,9 @@
 		this.fetchEvent(this.coreEvent.construct, [this]);
 	};
 	BP.prototype.coreEvent = {
+		/* 定义 cursorchange 核心事件 */
+		cursorchange: [],
+
 		/* 定义 reload 核心事件 */
 		reload: [],
 
