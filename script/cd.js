@@ -38,8 +38,9 @@
 		newEle && ele.appendChild( newEle );
 	},
 	setId = function (ele, set){
-		if ( set.id )
+		if ( set.id ){
 			ele.id = set.id;
+		}
 	},
 	setClass = function (ele, set){
 		let setClassList = function (classList){
@@ -48,9 +49,9 @@
 		/* 设定className，支持字符串和数组 */
 		if ( typeof(set.class) === 'string' ){
 			ele.className = set.class;
-			if ( set.classList ){
-				setClassList(set.classList);
-			}
+
+			/* 如果还存在 classList 的话... */
+			set.classList && setClassList(set.classList);
 		}
 		else{
 			setClassList(set.class);
