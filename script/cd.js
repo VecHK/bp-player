@@ -1,3 +1,9 @@
+/*
+Create DOM
+
+以看起来似乎很简单的方式构建一个DOM……
+然后似乎没什么好说明的了
+ */
 "use strict";
 
 (function (){
@@ -79,8 +85,10 @@
 		};
 		if ( typeof(set.css) === 'string' ){
 			ele.style.cssText = set.css;
-		}else if ( isPureObject(set.css) ){
+		}
+		else if ( isPureObject(set.css) ){
 			for ( let setProperty in set.css ){
+				/* 不设定不存在的CSS属性 */
 				isUndefined(ele.style[setProperty]) || setCssProperty(ele.style, set.css, setProperty);
 			}
 		}
@@ -107,5 +115,7 @@
 		return ele;
 	};
 
+	$c.version = "0.0.1";
+	console.info('cd.js '+$c.version);
 	window.$c = $c;
 })();
