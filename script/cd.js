@@ -63,6 +63,7 @@ Create DOM
 			setClassList(set.class);
 		}
 	},
+	/***** 这里的Event有个问题，就是addEventListener的第三个参数不能设定 */
 	setEvent = function (ele, set){
 		let fetchEvent = function (eventName, eventArr){
 			if ( typeof(eventArr) === 'function' ){
