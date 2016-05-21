@@ -15,8 +15,9 @@ Create DOM
 	isUndefined = function (obj){
 		return typeof(obj) === 'undefined';
 	},
+	isDOM = obj => obj instanceof HTMLElement,
 	DOMorString = function (set){
-		if ( set instanceof HTMLElement ){
+		if ( isDOM(set) ){
 			return set;
 		}else if ( typeof(set) === 'string' ){
 			return document.createElement(set);
@@ -24,23 +25,27 @@ Create DOM
 	},
 	setElementHTMLorText = function (ele, set){
 		let newEle;
+
 		/* 如果有 text…… */
 		if ( set.text ){
 			ele[ele.textContent ? 'textContent' : 'innerText'] = set.text;
 		}
 		/* 如果有 html…… */
-		/* 如果是个对象的话，以这个对象为参数重新执行 $c */
-		if ( typeof(set.html) === 'object' ){
+		/* 如果是个对象（而且还不能是DOM）的话，以这个对象为参数重新执行 $c */
+		if ( !isDOM(set.html) && typeof(set.html) === 'object' ){
 			newEle = $c(set.html);
 		}
 		/* 如果是个函数的话，以 ele, set 作为参数执行，如果有返回值，则将其添加到ele的底部 */
 		else if ( typeof(set.html) === 'function' ){
 			newEle = set.html(ele, set);
 		}
+		/* 如果是DOM */
+		else if ( isDOM(set.html) ){
+			newEle = set.html;
+		}
 		else if ( set.html ){
 			ele.innerHTML = set.html;
 		}
-
 		newEle && ele.appendChild( newEle );
 	},
 	setId = function (ele, set){
@@ -49,19 +54,9 @@ Create DOM
 		}
 	},
 	setClass = function (ele, set){
-		let setClassList = function (classList){
-			classList.forEach(item => ele.classList.add(item));
-		};
-		/* 设定className，支持字符串和数组 */
-		if ( typeof(set.class) === 'string' ){
-			ele.className = set.class;
+		let addClass = setArr => setArr.forEach(item => ele.classList.add(item));
 
-			/* 如果还存在 classList 的话... */
-			set.classList && setClassList(set.classList);
-		}
-		else{
-			setClassList(set.class);
-		}
+		isUndefined(set.class) || addClass( Array.isArray(set.class) ? set.class : [set.class] );
 	},
 	/***** 这里的Event有个问题，就是addEventListener的第三个参数不能设定 */
 	setEvent = function (ele, set){
@@ -96,11 +91,12 @@ Create DOM
 	},
 	$cSet = function (set){
 		/* 如果没有指定 tag 的话则默认创建一个div标签 */
-		let ele = document.createElement(set.tag || 'div');
+		let ele = DOMorString(set.tag) || $c('div');
+
+		setElementHTMLorText(ele, set);
 
 		setId(ele, set);
 		setClass(ele, set);
-		setElementHTMLorText(ele, set);
 
 		setCss(ele, set);
 
@@ -112,7 +108,14 @@ Create DOM
 		return ele;
 	};
 	$c = function (set){
-		let ele = DOMorString(set) || $cSet(set);
+		let ele;
+		/* 如果是set对象，则以这个对象开始chuangjDOM
+		不是对象的话，则以set为参数走一遍DOMorString */
+		if ( !isDOM(set) && isPureObject(set) ){
+			ele = $cSet(set);
+		}else{
+			ele = DOMorString(set);
+		}
 		return ele;
 	};
 
