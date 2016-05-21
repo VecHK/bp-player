@@ -1,11 +1,12 @@
 "use strict";
 let bp = new BP($('#audio')[0]);
 
-
 class Intro{
 	/* 构造函数，总之各种初始化 */
 	constructor(){
 		this.initDom();
+
+		this.initContextMenu();
 
 		this.initCurrent();
 
@@ -27,11 +28,12 @@ class Intro{
 				alert('list.json 获取失败了');
 			}
 		);
+		this.initAbout();
 	}
 	start(data){
 		bp.list = data;
 
-		bp.playMode = 'loop';
+		bp.playMode = 'random';
 		bp.reload();
 	}
 	initDom(){
@@ -39,8 +41,135 @@ class Intro{
 		this.mainEle = this.$mainEle[0];
 	}
 }
+class About extends Intro{
+	setBlur(){
+		$('main').css('webkitFilter', 'blur(20px)');
+	}
+	cancelBlur(){
+		$('main').css('webkitFilter', 'blur(0px)');
+	}
+	setTransition(ele){
+		ele.style.transition = `opacity 2s`;
+	}
+	aboutFadeIn(){
+		let ele = this.aboutEle;
+		this.setTransition(ele);
+		ele.style.opacity = '0';
+		ele.style.display = 'flex';
 
-class ScrollSelectorAction extends Intro{
+		setTimeout(function (){
+			ele.style.opacity = '1';
+		}, 16.7);
+
+		this.setBlur();
+	}
+	aboutFadeOut(){
+		let ele = this.aboutEle;
+		this.setTransition(ele);
+		ele.style.opacity = '1';
+		setTimeout(function (){
+			ele.style.opacity = '0';
+		}, 16.7);
+
+		setTimeout(function (){
+			ele.style.display = 'none';
+		}, 2000);
+		this.cancelBlur();
+	}
+	initAbout(){
+		this.aboutEleR = $('#about');
+		this.aboutEle = this.aboutEleR[0];
+
+		this.mainEleR = $('main');
+		this.mainEle = this.mainEleR[0];
+
+		this.aboutFadeOut();
+		$('#about').html(`
+			<h1>-bp-</h1>
+			<span>version ${this.version} </span>
+		`);
+		$(`#about`)[0].addEventListener('click', this.aboutFadeOut.bind(this));
+	}
+}
+class contextMenu extends About{
+	initContextMenu(){
+		let
+		/* 播放模式切换 */
+		playmodeSwitch = function (){
+			let cursor = bp.supportPlayMode.indexOf(bp.playMode);
+			if ( ++cursor === bp.supportPlayMode.length  ){
+				cursor = 0;
+			}
+			bp.playMode = bp.supportPlayMode[cursor];
+			return true;
+		},
+		playmodeFrame = {
+			title: $c({
+				id: 'playmode',
+				html: bp.playMode,
+			}),
+			click: playmodeSwitch,
+		},
+		previousFrame = {
+			title: $c({
+				class: 'play-control',
+				text: '<',
+			}),
+			click: function (){
+				bp.previous();
+				return true;
+			},
+		},
+		nextFrame = {
+			title: $c({
+				class: 'play-control',
+				text: '>'
+			}),
+			click: function (){
+				bp.next();
+				return true;
+			},
+		},
+		settingFrame = {
+			title: '设置',
+			click: function (){
+				alert('正在建设……');
+			},
+		},
+		aboutFrame = {
+			title: '关于',
+			click: function (){
+				this.aboutFadeIn();
+			}.bind(this),
+		},
+		albumFrame = {
+			title: '专辑信息：',
+			type: 'lock'
+		};
+
+		this.bm = new BM(document.body, [
+			[ playmodeFrame,  previousFrame,  nextFrame ],
+			settingFrame,
+			aboutFrame,
+			albumFrame,
+		]);
+
+		/* playmodechange触发的时候，playmodeFrame也相应变化 */
+		bp.coreEvent.playmodechange.push(playmode => {
+			playmodeFrame.title.innerHTML = playmode;
+		});
+
+		/* 新曲目时，更新 albumFrame */
+		bp.coreEvent.reload.push(function (current){
+			this.bm.items[this.bm.items.length-1].title = `
+			专辑： ${current.album} <br />
+			艺术家： ${current.artist}
+			`;
+		}.bind(this));
+	}
+}
+
+class ScrollSelectorAction extends contextMenu{
 	fadeIn(){
 		/* this.$mainEle.css('webkitFilter', 'blur(10px)'); */
 		$(this.ele).fadeIn();
@@ -246,6 +375,7 @@ class BpFrame extends TotalBeats {
 		});
 	}
 }
+BpFrame.prototype.version = "0.2.0";
 
 let frame = new BpFrame;
 

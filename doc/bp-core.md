@@ -73,14 +73,12 @@ bp.playMode = 'random';
 ```javascript
 ++bp.cursor;
 
-/* 或者用 bp.next(); 也可以 */
-
 ```
-这两种方式换曲**并不受播放模式影响**
+这种方式换曲**并不受播放模式影响**
 
 `bp.cursor` 是歌曲列表的指针，指向 `bp.list` 中当前播放的曲目。如果`bp.cursor`被修改了，bp-core的就会以被修改后的`bp.cursor`重新加载曲目。如果把`bp.cursor`设为比`bp.list`长度还大的数，`bp.cursor`将会被设置为`0`；如果设置为小于0的数字，则忽略
 
-**受播放模式影响** 的换曲方式见 APIs栏的 `BP.prototype.playEnd`
+**受播放模式影响** 的换曲方式见 APIs栏的 `BP.prototype.next`
 
 ### 事件
 
@@ -136,7 +134,7 @@ bp.addItem('曲名', '曲URL', '艺术家', '专辑名', '封面URL');
 
 ### BP.prototype.getCurrent()
 
-返回当前曲目
+返回当前曲目信息（对象）
 
 ### BP.prototype.pause()
 
@@ -202,10 +200,10 @@ let pluginFunc = function (){
 	console.info(this);	//这里的this已经指向BP的上下文中
 	/* 然后怎么做你懂得。。。。。。 */
 };
-
-BP.prototype.coreEvent.construct.push(function (){
-	pluginFunc.apply(this);
+BP.prototype.plugin.push({
+	name: 'bp插件',
+	main: pluginFunc,
+	version: '9.9.9',
 });
 
 ```
-

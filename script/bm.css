@@ -7,14 +7,13 @@
 	top: 300px;
 	left: 300px;
 
-	min-width: 192px;
-	max-width: 300px;
+	width: 192px;
 
 	background: rgba(255, 255, 255, 0.97);
 
 	border-radius: 4px;
 
-	box-shadow: 0px 1px 4px #333;
+	box-shadow: 0px 1px 4px #999;
 
 	padding-top: 5px;
 	padding-bottom: 5px;
@@ -25,7 +24,10 @@
 	color: white;
 }
 .bm-menu-click{
-
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
+	user-select:none;
 }
 
 .bm-menu-lock{
@@ -44,10 +46,10 @@
 	-ms-user-select:none;
 	user-select:none;
 
-	font-family: 'Hiragino Sans GB', DengXian, 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
+	font-family: Arial, 'Hiragino Sans GB', DengXian, "微软雅黑", 'WenQuanYi Microhei', 'Microsoft yahei light', 黑体;
+	font-size: small;
 
 	border: 0;
-
 	border-bottom: 1px solid #eee;
 
 	padding-top: 3px;
@@ -61,7 +63,8 @@
 .bm-menu-column{
 	display: flex;
 
-	justify-content: center;
+	justify-content: space-around;
+	align-items: center;
 }
 .bm-menu-column .bm-menu-item{
 	border: 0;

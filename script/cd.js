@@ -17,7 +17,10 @@ Create DOM
 	},
 	isDOM = obj => obj instanceof HTMLElement,
 	DOMorString = function (set){
-		if ( isDOM(set) ){
+		if ( !isDOM(set) && isPureObject(set) ){
+			return $c(set);
+		}
+		else if ( isDOM(set) ){
 			return set;
 		}else if ( typeof(set) === 'string' ){
 			return document.createElement(set);
@@ -119,7 +122,7 @@ Create DOM
 		return ele;
 	};
 
-	$c.version = "0.0.1";
+	$c.version = "0.1.0";
 	console.info('cd.js '+$c.version);
 	window.$c = $c;
 })();

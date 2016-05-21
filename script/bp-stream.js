@@ -49,11 +49,11 @@
 				streamPause || window.requestAnimationFrame(stream);
 			}
 		});
-
-		console.log("bp plugin(bp-stream) was applied.");
 	};
 
-	BP.prototype.coreEvent.construct.push(function (){
-		BpStream.apply(this);
+	BP.prototype.plugin.push({
+		name: 'bp-stream',
+		main: BpStream,
+		version: '0.0.1',
 	});
 })();

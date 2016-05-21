@@ -24,7 +24,11 @@
 
 		/* 下一首 */
 		next(){
-			++this.cursor;
+			if ( this.playMode === 'random' ){
+				this.setRandom();
+			}else{
+				++this.cursor;
+			}
 		}
 
 		/* 上一首 */
@@ -57,7 +61,7 @@
 				break;
 
 				case 'normal':{
-					this.next();
+					++cursor;
 				}
 				break;
 
@@ -83,55 +87,67 @@
 		getCurrent(){
 			return this.list[this.cursor];
 		}
-	}
-	BPList.prototype._cursor = 0;
-	BPList.prototype._playMode = 'loop';
-	BPList.prototype.list = [];
 
-	let supportPlayMode = ['random', 'single', 'normal', 'loop'];
-	Object.defineProperties(BPList.prototype, {
-		'playMode': {
-			get(){
-				return this._playMode;
-			},
-			set(set){
-				if ( !supportPlayMode.includes(set) ){
-					console.warn(`设置这种播放模式是不行的 (只支持这些：${supportPlayMode.toString()})`);
-				}else{
-					this._playMode = set;
-				}
-			}
-		},
-		'cursor':{
-			get(){
-				return this._cursor;
-			},
-			set(set){
-				if ( set < 0 ){
-					console.warn(`cursor(${set})设置为比0小的数是不行的`);
-				}
-				else if ( set >= this.list.length ){
-					console.warn(`设置了一个比 list长度 还长的cursor\ncursor已归零`);
-					this.cursor = 0;
-				}else{
-					this._cursor = set;
-					console.info(`cursor已切换到${set}`);
+		initBPListProperty(){
+			this._cursor = 0;
+			this._playMode = 'loop';
+			this.list = [];
+			Object.defineProperties(this, {
+				'playMode': {
+					get(){
+						return this._playMode;
+					},
+					set(set){
+						if ( !this.supportPlayMode.includes(set) ){
+							console.warn(`设置这种播放模式是不行的 (只支持这些：${this.supportPlayMode.toString()})`);
+						}else{
+							this._playMode = set;
 
-					this.reload();
+							/* 传递 playmodechange 核心事件 */
+							this.fetchEvent(this.coreEvent.playmodechange, [ set, this ]);
+						}
+					}
+				},
+				'cursor':{
+					get(){
+						return this._cursor;
+					},
+					set(set){
+						if ( set < 0 ){
+							/* 因为set是负数了，得用加法运算 */
+							this.cursor = this.list.length + set;
+							/* console.warn(`cursor(${set})设置为比0小的数是不行的`);*/
+						}
+						else if ( set >= this.list.length ){
+							console.warn(`设置了一个比 list长度 还长的cursor\ncursor已归零`);
+							this.cursor = 0;
+						}else{
+							this._cursor = set;
+							console.info(`cursor已切换到${set}`);
 
-					this.fetchEvent(this.coreEvent.cursorchange, [set, this.current]);
+							this.reload();
+
+							this.fetchEvent(this.coreEvent.cursorchange, [set, this.current]);
+						}
+					}
+				},
+				'current': {
+					get(){
+						return this.getCurrent();
+					},
+					set(set){
+						console.warn("设置了也没有什么卵用");
+					}
 				}
-			}
-		},
-		'current': {
-			get(){
-				return this.getCurrent();
-			},
-			set(set){
-				console.warn("设置了也没有什么卵用");
-			}
+			});
 		}
-	});
+
+		initBPList(){
+			this.initBPListProperty();
+		}
+	}
+
+	BPList.prototype.supportPlayMode = ['random', 'single', 'normal', 'loop'];
 
 	class BPCore{
 		play(){
@@ -195,6 +211,36 @@
 	let BP = function (audioEle){
 		this.audio = audioEle || (new Audio);
 
+		this.initBPList();
+
+		this.initEvent();
+
+		this.load();
+
+		/* 传递 construct 核心事件 */
+		this.fetchEvent(this.coreEvent.construct, [this]);
+
+		/* 插件 */
+		this.applyPlugin();
+	};
+
+	BP.prototype.initEvent = function (){
+		this.coreEvent = {
+			/* 定义 cursorchange 核心事件 */
+			cursorchange: [],
+
+			/* 定义 reload 核心事件 */
+			reload: [],
+
+			/* 定义 construct 核心事件 */
+			construct: [],
+
+			/* 定义 playmodechange 核心事件 */
+			playmodechange: [],
+		};
+		this.eventFetch = {};
+		this.eventPool = {};
+
 		/* 设定自定义事件轮询 */
 		this.eventList.forEach((eventName, currsor) => {
 			/* 事件池初始化 */
@@ -209,30 +255,23 @@
 		/* 定义 ended 核心事件 */
 		this.coreEvent.ended = this.playEnd;
 		this.addEvent('ended', this.coreEvent.ended.bind(this));
-
-		this.load();
-
-		/* 传递 construct 核心事件 */
-		this.fetchEvent(this.coreEvent.construct, [this]);
 	};
-	BP.prototype.coreEvent = {
-		/* 定义 cursorchange 核心事件 */
-		cursorchange: [],
 
-		/* 定义 reload 核心事件 */
-		reload: [],
-
-		/* 定义 construct 核心事件 */
-		construct: [],
-	};
-	BP.prototype.eventFetch = {};
-	BP.prototype.eventPool = {};
 	BP.prototype.eventList = ["loadstart", "durationchange", "timeupdate", "loadedmetadata", "loadeddata", "progress", "canplay", "canplaythrough", "play", "pause", "ended"]
+
+	BP.prototype.plugin = [];
+	BP.prototype.applyPlugin = function (){
+		console.group(`bp-plugin(${this.plugin.length})`);
+		this.plugin.forEach(pluginInfo =>{
+			pluginInfo.main.apply(this, pluginInfo);
+			console.log(`${pluginInfo.name}@${pluginInfo.version}`);
+		});
+		console.groupEnd();
+	};
 
 	BP.prototype.__proto__ = BPCore.prototype;
 
 	window.BP = BP;
 
-	BPCore.prototype.version = "0.0.2";
-	console.info(`bp-core ${BP.prototype.version}`);
+	BPCore.prototype.version = "0.1.0";
 })();

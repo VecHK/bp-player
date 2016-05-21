@@ -42,19 +42,36 @@
 				/* 如果click返回了true之类的数值的话，就不会淡出菜单栏 */
 				itemEvent.mouseup = e => item.click(e) || this.fadeOut();
 			}
-			let newEle = $c({
-				class: classList,
-				html: item.title,
-				event: itemEvent,
-			});
+			/*
+			bm-item的title属性支持DOM或者PureObject
+			如果是DOM的话则将其设置为 $c tag
+			如果是PureObject的话则将其设置为 $c html
+			*/
+			if ( typeof(item.title) === 'object' ){
+				var newEle = $c({
+					class: classList,
+					tag: item.title,
+					event: itemEvent,
+				});
+			}else{
+				var newEle = $c({
+					class: classList,
+					html: item.title,
+					event: itemEvent,
+				});
+			}
+
 			bindEle.appendChild(newEle);
+			return newEle;
 		}
 		fetchList(items, bindEle){
 			let bmThis = this;
 			return $c({
 				tag: bindEle,
 				html: function (binEle){
-					items.forEach(item => bmThis.setItem(item, bindEle));
+					items.forEach((item, index) => {
+						bmThis.items[index].ele = bmThis.setItem(item, bindEle);
+					});
 				}
 			});
 		}
@@ -69,8 +86,8 @@
 			bindEle.appendChild( this.fetchList(items, menuEle) );
 		}
 		initMenu(){
-			this.initDom(this.bindEle);
 			this.items = this.bindItems(this._items);
+			this.initDom(this.bindEle);
 		}
 		bindItem(source){
 			let bindItem = {
@@ -83,6 +100,10 @@
 					},
 					set(set){
 						source.title = set;
+						$c({
+							tag: this.ele,
+							html: set
+						});
 					}
 				},
 				click: {
@@ -226,7 +247,7 @@
 	class BM extends Bind{
 
 	}
-	BM.prototype.version = '0.1.0';
+	BM.prototype.version = '0.2.0';
 
 	window.BM = BM;
 })();
