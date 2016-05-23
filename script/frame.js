@@ -6,6 +6,8 @@ class Intro{
 	constructor(){
 		this.initDom();
 
+		/* 初始化设置界面与右键菜单 */
+		this.initSetting();
 		this.initContextMenu();
 
 		this.initCurrent();
@@ -30,26 +32,239 @@ class Intro{
 		);
 		this.initAbout();
 	}
-	start(data){
-		bp.list = data;
-
-		bp.playMode = 'random';
-		bp.reload();
-	}
 	initDom(){
 		this.$mainEle = $("main");
 		this.mainEle = this.$mainEle[0];
 	}
 }
-class About extends Intro{
+
+class Config extends Intro{
+
+	/* 收集保存前的信息 */
+	collectCurrent(){
+		this.config.playMode = bp.playMode;
+		this.config.cursor = bp.cursor;
+	}
+
+	saveConfig(){
+		this.collectCurrent();
+		window.localStorage.setItem('bpconfig', JSON.stringify(this.config));
+	}
+
+	queryConfig(newConfig){
+		Object.keys(this.config).forEach(key => {
+			if ( newConfig[key] !== undefined ){
+				this.config[key] = newConfig[key];
+			}
+		});
+	}
+
+	loadConfig(){
+		if ( !window.localStorage ){
+			console.log('环境不支持window.localStorage方法');
+			throw new Error('undefined');
+		}
+
+		try{
+			let config = window.localStorage.getItem('bpconfig');
+			config = JSON.parse(config);
+
+			this.queryConfig(config);
+		}catch(e){
+			console.log('config字段parse错误');
+			throw new Error('parseFail');
+		}
+	}
+
+	applyConfig(){
+		for ( let key in this.config){
+			if ( key === 'playMode' ){
+				bp.playMode = this.config[key];
+			}
+			else if ( key === 'totalBeats' ){
+				this.config[key] ? this.enableBeat() : this.stopBeat();
+			}
+			else if ( key === 'progressSize' ){
+				this.progressSize = this.config[key];
+			}
+		}
+	}
+
+	/* 初始化设定 */
+	initConfig(){
+		try{
+			this.loadConfig();
+		}catch(e){
+			console.log('读取默认的config');
+			this.queryConfig({});
+		}
+		this.applyConfig();
+		this.exitSave();
+	}
+
+	start(data){
+		this.initConfig();
+		bp.list = data;
+
+		bp.reload();
+	}
+
+	setConfig(key, value){
+		if ( this.config[key] !== undefined ){
+			this.config[key] = value
+			this.applyConfig();
+		}else{
+			throw new Error('不能接受的configKey');
+		}
+	}
+
+	/* 在页面关闭或者刷新时绑定的事件，用来设置退出前保存 */
+	exitSave(){
+		window.addEventListener('beforeunload', () => {
+			this.saveConfig();
+		});
+	}
+}
+Config.prototype.config = {
+	cursor: 0,
+	playMode: 'loop',
+	totalBeats: true,
+	progressSize: 1,
+};
+
+class Setting extends Config{
+	collectSavePanel(){
+		let bpFrame = this,
+		collect = function (){
+			try{
+				let
+				totalBeats = 'totalBeats',
+				progressSize = 'progressSize';
+				bpFrame.config[totalBeats] = this[totalBeats.toLowerCase()].checked;
+
+				bpFrame.config[progressSize] = this[progressSize.toLowerCase()].value;
+
+				bpFrame.applyConfig();
+				bpFrame.saveConfig();
+			}catch(e){
+				console.error(e);
+			}
+			return false;
+		};
+		$('#config [type="submit"]')[0].onclick = function (){
+			collect.call($('#config')[0]);
+			return false;
+		};
+		$('#config')[0].onsubmit = function (){
+			return false;
+		};
+	}
+	settingEvent(e){
+		if ( this.settingIsFadeIn && e.button === 2 || e.button === 3){
+			this.closeSetting();
+		}
+	}
+	openSetting(){
+		let
+		ele = this.settingEle,
+		time = 618;
+		this.setTransition(ele, time/1000);
+		ele.style.opacity = '0';
+		ele.style.display = 'block';
+
+		this.renderForm();
+
+		setTimeout(() => {
+			ele.style.opacity = '1';
+		}, 16.7);
+		this.settingIsFadeIn = true;
+		/* 如果点的不是左键 */
+		document.body.addEventListener('mouseup', this.settingEvent.bind(this));
+	}
+	closeSetting(){
+		let
+		ele = this.settingEle,
+		time = 618;
+		this.setTransition(ele, time/1000);
+		ele.style.opacity = '1';
+		setTimeout(() => {
+			ele.style.opacity = '0';
+		}, 16.7);
+
+		/* 取消事件 */
+		document.body.removeEventListener('mouseup', this.settingEvent.bind(this));
+		setTimeout(()=>{
+			ele.style.display = 'none';
+
+			this.settingIsFadeIn = false;
+		}, time);
+	}
+	detectLocation(e){
+		this.settingEle.style.display = 'block';
+		let
+		ele = this.settingEle,
+		settingWidth = ele.offsetWidth,
+		settingHeight = ele.offsetHeight,
+		pageWidth = document.body.offsetWidth,
+		pageHeight = document.body.offsetHeight,
+		locateX = e.pageX,
+		locateY = e.pageY;
+
+		if ( (settingWidth + locateX) > pageWidth ){
+			locateX = pageWidth - (settingWidth / 2) - 10;
+		}
+		if ( (settingHeight + locateY) > pageHeight ){
+			locateY = pageHeight - (settingHeight / 2) - 10;
+		}
+		if ( locateX - settingWidth <= 0 ){
+			locateX = (settingWidth / 2) + 10;
+		}
+		if ( locateY - settingHeight <= 0 ){
+			locateY = (settingHeight / 2) + 10;
+		}
+
+		locateX = locateX - ( settingWidth / 2 );
+		locateY = locateY - ( settingHeight / 2 );
+
+		ele.style.left = locateX + 'px';
+		ele.style.top = locateY + 'px';
+
+		this.openSetting();
+	}
+
+	renderForm(){
+		let ele = $('#config')[0];
+		console.info(ele.totalbeats.checked, this.config['totalBeats']);
+		ele.totalbeats.checked = this.config['totalBeats'];
+
+		ele.progresssize.value = this.config['progressSize'];
+	}
+
+	initSetting(){
+		this.settingEleR = $('#setting');
+		this.settingEle = this.settingEleR[0];
+
+		this.settingFrame = {
+			title: '设置',
+			click: this.detectLocation.bind(this),
+		};
+
+		this.collectSavePanel();
+
+		$('.setting-control button')[0].addEventListener('click', () => this.closeSetting());
+	}
+}
+
+class About extends Setting{
 	setBlur(){
 		$('main').css('webkitFilter', 'blur(20px)');
 	}
 	cancelBlur(){
 		$('main').css('webkitFilter', 'blur(0px)');
 	}
-	setTransition(ele){
-		ele.style.transition = `opacity 2s`;
+	setTransition(ele, time){
+		time = time || 2;
+		ele.style.transition = `opacity ${time}s`;
 	}
 	aboutFadeIn(){
 		let ele = this.aboutEle;
@@ -130,12 +345,6 @@ class contextMenu extends About{
 				return true;
 			},
 		},
-		settingFrame = {
-			title: '设置',
-			click: function (){
-				alert('正在建设……');
-			},
-		},
 		aboutFrame = {
 			title: '关于',
 			click: function (){
@@ -149,7 +358,7 @@ class contextMenu extends About{
 
 		this.bm = new BM(document.body, [
 			[ playmodeFrame,  previousFrame,  nextFrame ],
-			settingFrame,
+			this.settingFrame,
 			aboutFrame,
 			albumFrame,
 		]);
@@ -322,13 +531,23 @@ class TotalBeats extends ScrollSelector{
 		$('img').css('box-shadow', `0px 0px ${ave/4}px ${globalColor}`);
 
 	}
+	enableBeat(){
+		bp.streamPause = false;
+	}
 	pauseBeat(){
-		bp.streamPause = 1;
+		bp.streamPause = true;
+	}
+	flushBeat(){
+		$('img').css('box-shadow', ``);
+	}
+	stopBeat(){
+		this.pauseBeat();
+		setTimeout(this.flushBeat.bind(this), 16.7);
 	}
 	initTotalBeats(){
 		let fresh = this.fresh;
 		bp.setStream(fresh);
-		bp.streamPause = 0;
+		bp.streamPause = 1;
 	}
 
 }
@@ -369,13 +588,32 @@ class BpFrame extends TotalBeats {
 
 	/* 初始化 进度条 */
 	initProgress(){
-		bp.eventPool.timeupdate.push(function (){
+		let
+		bpFrame = this,
+		lastProgress = -1,
+		setCSS = (() => {
+			let eleR = $('#progress .current');
+			return width => eleR.css({width:  `${width}%`});
+		})(),
+		freshProgress = function (){
 			let width = (this.audio.currentTime / this.audio.duration) * 100;
-			$('#progress .current').css({width:  `${width}%`});
+			if ( (width - lastProgress) >= bpFrame.config.progressSize ){
+				setCSS(width);
+				lastProgress = width;
+			}
+		};
+		bp.eventPool.timeupdate.push(freshProgress);
+		bp.eventPool.seeking.push( () => {
+			lastProgress = -1;
+			freshProgress.call(bp);
+		});
+		bp.coreEvent.reload.push(() => {
+			setCSS(0);
+			lastProgress = -1;
 		});
 	}
 }
-BpFrame.prototype.version = "0.2.0";
+BpFrame.prototype.version = "0.3.3";
 
 let frame = new BpFrame;
 

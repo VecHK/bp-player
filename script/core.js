@@ -257,7 +257,7 @@
 		this.addEvent('ended', this.coreEvent.ended.bind(this));
 	};
 
-	BP.prototype.eventList = ["loadstart", "durationchange", "timeupdate", "loadedmetadata", "loadeddata", "progress", "canplay", "canplaythrough", "play", "pause", "ended"]
+	BP.prototype.eventList = ['seeking', "loadstart", "durationchange", "timeupdate", "loadedmetadata", "loadeddata", "progress", "canplay", "canplaythrough", "play", "pause", "ended"]
 
 	BP.prototype.plugin = [];
 	BP.prototype.applyPlugin = function (){

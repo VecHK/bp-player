@@ -36,6 +36,22 @@
 	<div id="bugger">
 	</div>
 
+	<div id="setting">
+		<form id="config">
+			<label>
+				<input name="totalbeats" type="checkbox" id="totalbeats" checked="false" />启用totalBeats
+			</label>
+			<label>
+				<input name="progresssize" type="text" id="progresssize" pattern="(^[0-9]*)\.*([0-9]*)" title="大于0的数字"/>设定进度条粒度
+			</label>
+
+			<div class="setting-control">
+				<input type="submit" value="应用" />
+				<button>关闭</button>
+			</div>
+		</form>
+	</div>
+
 	<div id="scroll-selector">
 		<ul id="ss-list">
 		</ul>
