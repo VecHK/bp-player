@@ -210,16 +210,16 @@ class Setting extends Config{
 		locateX = e.pageX,
 		locateY = e.pageY;
 
-		if ( (settingWidth + locateX) > pageWidth ){
+		if ( ((settingWidth / 2) + locateX) > pageWidth ){
 			locateX = pageWidth - (settingWidth / 2) - 10;
 		}
-		if ( (settingHeight + locateY) > pageHeight ){
+		if ( ((settingHeight / 2) + locateY) > pageHeight ){
 			locateY = pageHeight - (settingHeight / 2) - 10;
 		}
-		if ( locateX - settingWidth <= 0 ){
+		if ( locateX - (settingWidth / 2) <= 0 ){
 			locateX = (settingWidth / 2) + 10;
 		}
-		if ( locateY - settingHeight <= 0 ){
+		if ( locateY - (settingHeight / 2) <= 0 ){
 			locateY = (settingHeight / 2) + 10;
 		}
 
@@ -412,13 +412,18 @@ class ScrollSelectorAction extends contextMenu{
 	scrollDown(){
 		++this.cursor;
 	}
-	scroll(direct){
+	scroll(direct, anti){
 		this.isFadein || this.fadeIn();
 
 		++this.limit;
 
 		if ( this.limit > 3 ){
-			this['scroll' + (direct ? 'Up' : 'Down')]();
+			if ( anti ){
+				this['scroll' + (direct ? 'Down' : 'Up')]();
+			}else{
+				this['scroll' + (direct ? 'Up' : 'Down')]();
+			}
+
 			this.limit = 0;
 		}
 
@@ -481,16 +486,28 @@ class ScrollSelector extends ScrollSelectorAction{
 	setScrollDirect(func){
 		let scrollFunc = (e) => {
 			e = e || window.event;
-			let direct = (e.wheelDelta || e.detail) > 0
-			func(direct);
+			let direct = (e.wheelDelta || e.detail) > 0;
+
+			if ( e.wheelDelta === undefined ){
+				func(direct, true);
+			}
+			/* firefox */
+			else{
+				func(direct, false);
+			}
+
+
 		};
 
-		/*
-		if( document.addEventListener ){
-			document.addEventListener('DOMMouseScroll', scrollFunc, true);
-		}*/
 		/* IE/Opera/Chrome */
-		window.onmousewheel = document.onmousewheel = scrollFunc;
+		if ( window.onmousewheel !== undefined ){
+			window.onmousewheel = document.onmousewheel = scrollFunc;
+		}
+		/* fireFox */
+		else{
+			document.addEventListener('DOMMouseScroll', scrollFunc, true);
+		}
+
 	}
 
 	/* 渲染列表 */
