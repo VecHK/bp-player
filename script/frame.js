@@ -335,6 +335,22 @@ class contextMenu extends About{
 				return true;
 			},
 		},
+		pauseOrPlay = {
+			title: $c({
+				class: 'play-or-pause',
+				text: '||',
+			}),
+			click: function (e){
+
+				if ( bp.audio.paused ){
+					$(e.target).html('||');
+				}else{
+					$(e.target).html('●');
+				}
+				bp[ bp.audio.paused ? 'play' : 'pause' ]();
+				return true;
+			}
+		},
 		nextFrame = {
 			title: $c({
 				class: 'play-control',
@@ -357,7 +373,7 @@ class contextMenu extends About{
 		};
 
 		this.bm = new BM(document.body, [
-			[ playmodeFrame,  previousFrame,  nextFrame ],
+			[ playmodeFrame,  previousFrame, pauseOrPlay, nextFrame ],
 			this.settingFrame,
 			aboutFrame,
 			albumFrame,
