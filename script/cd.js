@@ -9,8 +9,9 @@ Create DOM
 (function (){
 	let
 	$c,
+	isArray = value => Array.isArray(value),
 	isPureObject = function (obj){
-		return !Array.isArray(obj) && typeof obj === 'object';
+		return !isArray(obj) && typeof obj === 'object';
 	},
 	isUndefined = function (obj){
 		return typeof(obj) === 'undefined';
@@ -35,7 +36,7 @@ Create DOM
 		}
 		/* 如果有 html…… */
 		/* 如果是个对象（而且还不能是DOM）的话，以这个对象为参数重新执行 $c */
-		if ( !isDOM(set.html) && typeof(set.html) === 'object' ){
+		if ( !isDOM(set.html) && isPureObject(set.html) ){
 			newEle = $c(set.html);
 		}
 		/* 如果是个函数的话，以 ele, set 作为参数执行，如果有返回值，则将其添加到ele的底部 */
@@ -46,10 +47,46 @@ Create DOM
 		else if ( isDOM(set.html) ){
 			newEle = set.html;
 		}
+		/* 是数组的话就按照 query的方式 处理 （但是不支持对象的形式） */
+		else if ( isArray(set.html) ){
+			let tempQuery = set.query;
+			set.query = set.html;
+			setQuery(ele, set);
+
+			if ( isUndefined(tempQuery) ){
+				delete set.query;
+			}else{
+				set.query = tempQuery;
+			}
+		}
 		else if ( set.html ){
 			ele.innerHTML = set.html;
 		}
 		newEle && ele.appendChild( newEle );
+
+		return newEle || ele;
+	},
+	/* 执行序列化 */
+	execQuery = (arr, set) => arr.map( item => setElementHTMLorText($c(set.tag || 'div'), {html: item}) ),
+	/* 序列化处理 */
+	setQuery = (ele, set) => {
+		let query = set.query,
+			param;
+		if ( query === undefined ){
+			return ;
+		}
+
+		/* 如果是数组（序列化处理HTML） */
+		if ( isArray( query ) ){
+			param = [query, {}];
+		}
+		if ( isPureObject( query ) ){
+			param = [query.list, query];
+		}
+
+		set._queryHtml = execQuery.apply(null, param);
+
+		set._queryHtml.forEach( ele.appendChild.bind(ele) );
 	},
 	setId = function (ele, set){
 		if ( set.id ){
@@ -78,6 +115,16 @@ Create DOM
 			});
 		}
 	},
+	attr = (ele, property, value) => {
+		let atr = document.createAttribute(property);
+		atr.value = value;
+		ele.attributes.setNamedItem(atr);
+	},
+	setAttr = (ele, set) => {
+		if ( isPureObject(set.attr) ){
+			Object.keys(set.attr).forEach(key => attr(ele, key, set.attr[key]));
+		}
+	},
 	setCss = function (ele, set){
 		let setCssProperty = function (obj1, obj2, property){
 			obj1[property] = obj2[property];
@@ -97,9 +144,12 @@ Create DOM
 		let ele = DOMorString(set.tag) || $c('div');
 
 		setElementHTMLorText(ele, set);
+		setQuery(ele, set);
 
 		setId(ele, set);
 		setClass(ele, set);
+
+		setAttr(ele, set);
 
 		setCss(ele, set);
 
@@ -122,7 +172,7 @@ Create DOM
 		return ele;
 	};
 
-	$c.version = "0.1.0";
+	$c.version = "0.2.0";
 	console.info('cd.js '+$c.version);
 	window.$c = $c;
 })();
